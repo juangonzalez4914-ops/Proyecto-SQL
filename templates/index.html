@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Datos Abiertos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+    <h1>Sistema de Consulta de Datos Abiertos</h1>
+    <p class="sub">Casos positivos de COVID-19 en Colombia (datos.gov.co, recurso gt2j-8ykr)</p>
+
+    <form action="{{ url_for('sincronizar') }}" method="POST">
+        <button type="submit">Consultar API y guardar datos</button>
+    </form>
+
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+      {% for categoria, mensaje in mensajes %}
+        <div class="msg {{ categoria }}"><strong>{{ categoria }}:</strong> {{ mensaje }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    {% if resumen %}
+    <h2>Resumen de los datos almacenados</h2>
+    <div class="tarjetas">
+        <div class="tarjeta"><strong>{{ resumen.total }}</strong>Total de registros</div>
+        <div class="tarjeta"><strong>{{ resumen.promedio_edad if resumen.promedio_edad is not none else '-' }}</strong>Edad promedio</div>
+        <div class="tarjeta"><strong>{{ resumen.edad_minima if resumen.edad_minima is not none else '-' }}</strong>Edad mínima</div>
+        <div class="tarjeta"><strong>{{ resumen.edad_maxima if resumen.edad_maxima is not none else '-' }}</strong>Edad máxima</div>
+        {% for sexo, cantidad in resumen.por_sexo %}
+        <div class="tarjeta"><strong>{{ cantidad }}</strong>Sexo: {{ sexo }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <h2>Registros almacenados</h2>
+    <form action="{{ url_for('inicio') }}" method="GET">
+        <input type="text" name="q" value="{{ filtro }}"
+               placeholder="Buscar municipio, departamento o estado">
+        <button type="submit">Buscar</button>
+        <a href="{{ url_for('inicio') }}">Limpiar</a>
+    </form>
+
+    <div class="tabla-scroll">
+    <table>
+        <thead>
+            <tr>
+                <th>ID caso</th>
+                <th>Departamento</th>
+                <th>Municipio</th>
+                <th>Edad</th>
+                <th>Sexo</th>
+                <th>Estado</th>
+                <th>Recuperado</th>
+                <th>Fecha de reporte</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for fila in registros %}
+            <tr>
+                <td>{{ fila.id_api }}</td>
+                <td>{{ fila.departamento }}</td>
+                <td>{{ fila.municipio }}</td>
+                <td>{{ fila.edad }}</td>
+                <td>{{ fila.sexo }}</td>
+                <td>{{ fila.estado }}</td>
+                <td>{{ fila.recuperado }}</td>
+                <td>{{ fila.fecha_reporte }}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="8">No hay registros para mostrar.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</body>
+</html>
